@@ -1,0 +1,60 @@
+name: hermes-fog
+label: Fog
+kind: platform
+version: 0.1.0
+description: >
+  Fog gateway adapter for Hermes Agent. Talks to Fog (an end-to-end encrypted messenger) through the local
+  fog-bot daemon: DMs, groups and threads, streamed replies, approval/clarify/picker buttons, forms, the
+  command menu with /skill autocomplete, files and voice notes, reactions and home-channel cron delivery.
+author: 0xGingi
+requires_env:
+  - name: FOG_BOT_TOKEN
+    description: "fog-bot API token (printed by `fog-bot init`, or `fog-bot token`)"
+    prompt: "fog-bot API token"
+    url: "https://github.com/0xGingi/hermes-fog#setup"
+    password: true
+optional_env:
+  - name: FOG_BOT_URL
+    description: "fog-bot API address (default http://127.0.0.1:8790)"
+    prompt: "fog-bot URL"
+    password: false
+  - name: FOG_ALLOWED_USERS
+    description: "Comma-separated Fog account ids or @usernames allowed to talk to the bot"
+    prompt: "Allowed users (comma-separated)"
+    password: false
+  - name: FOG_ALLOW_ALL_USERS
+    description: "Let anyone who can message the bot use it (true/false)"
+    prompt: "Allow all users? (true/false)"
+    password: false
+  - name: FOG_GROUP_ALLOWED_CHATS
+    description: "Comma-separated group ids (g:...) where every member may use the bot"
+    prompt: "Allowed groups"
+    password: false
+  - name: FOG_REQUIRE_MENTION
+    description: "Only answer group messages that mention or reply to the bot (default true)"
+    prompt: "Require mention in groups? (true/false)"
+    password: false
+  - name: FOG_FREE_RESPONSE_CHATS
+    description: "Comma-separated group ids where the bot answers without a mention (* for all)"
+    prompt: "Free-response groups"
+    password: false
+  - name: FOG_AUTO_THREAD
+    description: "Start a thread (its own session) for each @mention in a group (default true)"
+    prompt: "Auto-thread mentions? (true/false)"
+    password: false
+  - name: FOG_HOME_CHANNEL
+    description: "Default chat for cron/notifications: account id, @username or g:group (append /<thread id> for a thread)"
+    prompt: "Home channel"
+    password: false
+  - name: FOG_HOME_CHANNEL_NAME
+    description: "Display name for the Fog home channel"
+    prompt: "Home channel name"
+    password: false
+  - name: FOG_REACTIONS
+    description: "React 👀 / ✅ / ❌ to messages while working (default true)"
+    prompt: "Status reactions? (true/false)"
+    password: false
+  - name: FOG_NOTIFICATIONS
+    description: "important (default: only replies notify) or all"
+    prompt: "Notifications (important/all)"
+    password: false

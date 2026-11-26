@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "hermes-fog"
+version = "0.1.0"
+description = "Hermes Agent platform plugin for Fog, the end-to-end encrypted messenger"
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.11"
+authors = [{ name = "0xGingi" }]
+# Hermes itself provides httpx; no other runtime dependencies.
+dependencies = []
+
+[project.urls]
+Homepage = "https://github.com/0xGingi/hermes-fog"
+
+[project.entry-points."hermes_agent.plugins"]
+hermes-fog = "hermes_fog:register"
+
+[project.optional-dependencies]
+test = ["pytest>=8", "pytest-asyncio>=0.23"]
+
+# The repository root IS the plugin directory (that is what `hermes plugins install` clones),
+# so the pip package maps it onto the `hermes_fog` import name.
+[tool.setuptools]
+packages = ["hermes_fog"]
+package-dir = { "hermes_fog" = "." }
+
+[tool.setuptools.package-data]
+hermes_fog = ["plugin.yaml"]
