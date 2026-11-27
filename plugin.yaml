@@ -1,7 +1,7 @@
 name: hermes-fog
 label: Fog
 kind: platform
-version: 0.1.0
+version: 0.2.0
 description: >
   Fog gateway adapter for Hermes Agent. Talks to Fog (an end-to-end encrypted messenger) through the local
   fog-bot daemon: DMs, groups and threads, streamed replies, approval/clarify/picker buttons, forms, the
@@ -15,8 +15,12 @@ requires_env:
     password: true
 optional_env:
   - name: FOG_BOT_URL
-    description: "fog-bot API address (default http://127.0.0.1:8790)"
+    description: "fog-bot API address (default http://127.0.0.1:8790). Another machine needs https:// (or an SSH tunnel)"
     prompt: "fog-bot URL"
+    password: false
+  - name: FOG_BOT_CA
+    description: "CA bundle or fog-bot's certificate to trust for a remote https:// fog-bot (e.g. self-signed)"
+    prompt: "fog-bot CA file"
     password: false
   - name: FOG_ALLOWED_USERS
     description: "Comma-separated Fog account ids or @usernames allowed to talk to the bot"
@@ -27,7 +31,7 @@ optional_env:
     prompt: "Allow all users? (true/false)"
     password: false
   - name: FOG_GROUP_ALLOWED_CHATS
-    description: "Comma-separated group ids (g:...) where every member may use the bot"
+    description: "Comma-separated group ids (g:...) where every member may use the bot (they must also be on fog-bot's allowlist)"
     prompt: "Allowed groups"
     password: false
   - name: FOG_REQUIRE_MENTION

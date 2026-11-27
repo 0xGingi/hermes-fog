@@ -64,6 +64,11 @@ def fog_url(config: Optional[PlatformConfig]) -> str:
     return str(extra_or_secret(extra, "url", "FOG_BOT_URL", DEFAULT_URL) or DEFAULT_URL).strip().rstrip("/")
 
 
+def fog_ca(config: Optional[PlatformConfig]) -> Optional[str]:
+    extra = getattr(config, "extra", None) or {}
+    return str(extra_or_secret(extra, "ca", "FOG_BOT_CA", "") or "").strip() or None
+
+
 def check_fog_requirements() -> bool:
     """Passive probe: httpx ships with Hermes, so only the token decides."""
     return bool(str(get_scoped_secret("FOG_BOT_TOKEN", "") or "").strip())
@@ -172,7 +177,11 @@ class FogAdapter(FogInteractiveMixin, BasePlatformAdapter):
         identity = hashlib.sha256(f"{self._url}|{self._token}".encode()).hexdigest()[:32]
         if not self._acquire_platform_lock("fog-bot", identity, "Fog bot daemon"):
             return False
-        self._client = FogClient(self._url, self._token)
+        try:
+            self._client = FogClient(self._url, self._token, ca=fog_ca(self.config))
+        except ValueError as exc:
+            self._set_fatal_error("insecure_url", str(exc), retryable=False)
+            return False
         try:
             self._me = await self._client.me()
         except FogApiError as exc:
@@ -677,7 +686,11 @@ class FogAdapter(FogInteractiveMixin, BasePlatformAdapter):
         try:
             data = await self._client.send_message(chat_id, payload)
         except Exception as exc:
-            logger.warning("[%s] send to %s failed: %s", self.name, hash_for_log(chat_id), exc)
+            if isinstance(exc, FogApiError) and exc.code == "not_allowed":
+                # Expected, not a fault: fog-bot stays silent in groups with someone who isn't on its allowlist.
+                logger.info("[%s] fog-bot won't post in %s: %s", self.name, hash_for_log(chat_id), exc.message or exc.code)
+            else:
+                logger.warning("[%s] send to %s failed: %s", self.name, hash_for_log(chat_id), exc)
             return self._send_error(exc), None
         msg = data.get("message") or {}
         extra = [str(m.get("id")) for m in (data.get("messages") or [])[1:]]

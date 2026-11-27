@@ -5,9 +5,10 @@ Shared by the live adapter and the out-of-process sender (cron / ``hermes send``
 from __future__ import annotations
 
 import asyncio
+import ipaddress
 import os
 from typing import Any, AsyncIterator, Optional
-from urllib.parse import quote
+from urllib.parse import quote, urlsplit
 
 import httpx
 
@@ -30,19 +31,41 @@ def split_chat(chat_id: str) -> tuple[str, Optional[str]]:
     return chat, (thread or None)
 
 
+def check_url(url: str) -> None:
+    """The token gives full control of the bot's account: only send it over HTTPS, or plain HTTP to this machine
+    (fog-bot's default). Anything else raises ``ValueError``."""
+    parts = urlsplit(url)
+    if parts.scheme == "https":
+        return
+    if parts.scheme != "http":
+        raise ValueError(f"FOG_BOT_URL must start with http:// or https:// (got {url!r})")
+    host = (parts.hostname or "").lower()
+    try:
+        local = host == "localhost" or ipaddress.ip_address(host).is_loopback
+    except ValueError:
+        local = False
+    if not local:
+        raise ValueError(f"refusing to send the fog-bot token over plain HTTP to {host or url!r}: "
+                         "use https:// (fog-bot run --tls-cert/--tls-key) or an SSH tunnel to 127.0.0.1")
+
+
 def _q(value: str) -> str:
     return quote(str(value), safe="")
 
 
 class FogClient:
-    """One ``httpx.AsyncClient`` against ``http://127.0.0.1:8790`` with the bearer token."""
+    """One ``httpx.AsyncClient`` against fog-bot (``http://127.0.0.1:8790`` by default) with the bearer token.
+    ``ca``: a CA bundle (or fog-bot's own certificate) to trust for a remote ``https://`` fog-bot.
+    Raises ``ValueError`` for a URL the token mustn't go to (see ``check_url``)."""
 
-    def __init__(self, base_url: str, token: str, *, timeout: float = 30.0):
+    def __init__(self, base_url: str, token: str, *, timeout: float = 30.0, ca: Optional[str] = None):
         self.base_url = (base_url or DEFAULT_URL).rstrip("/")
+        check_url(self.base_url)
         self._http = httpx.AsyncClient(
             base_url=self.base_url, timeout=httpx.Timeout(timeout, connect=10.0),
             headers={"Authorization": f"Bearer {token}", "User-Agent": "hermes-fog"},
-            # The daemon only listens locally; never route it through an HTTP(S)_PROXY.
+            verify=ca or True,
+            # Straight to fog-bot; never route it (and the token) through an HTTP(S)_PROXY.
             trust_env=False)
 
     async def close(self) -> None:

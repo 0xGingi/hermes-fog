@@ -3,4 +3,4 @@
 from .register import register
 
 __all__ = ["register"]
-__version__ = "0.1.0"
+__version__ = "0.2.0"

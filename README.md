@@ -61,10 +61,11 @@ search for the bot's `@username` in Fog, and say hi.
 | Variable | Default | |
 |---|---|---|
 | `FOG_BOT_TOKEN` | (required) | fog-bot's API token. |
-| `FOG_BOT_URL` | `http://127.0.0.1:8790` | Where fog-bot listens. |
+| `FOG_BOT_URL` | `http://127.0.0.1:8790` | Where fog-bot listens. On another machine it must be `https://` (see below); the plugin won't send the token over plain HTTP except to this machine. |
+| `FOG_BOT_CA` | | A CA bundle, or fog-bot's own certificate, to trust for a remote `https://` fog-bot (e.g. a self-signed one). |
 | `FOG_ALLOWED_USERS` | | Comma-separated account ids or `@usernames`. Usernames are resolved to ids at connect. |
 | `FOG_ALLOW_ALL_USERS` | `false` | Anyone who can message the bot may use it. |
-| `FOG_GROUP_ALLOWED_CHATS` | | Group ids (`g:…`) where every member may use the bot. |
+| `FOG_GROUP_ALLOWED_CHATS` | | Group ids (`g:…`) where every member may use the bot. With an allowlist on fog-bot, every member of those groups must also be on it, or fog-bot stays silent there. |
 | `FOG_ALLOW_BOTS` | | Let other bots talk to this one (`mentions` / `all`). |
 | `FOG_REQUIRE_MENTION` | `true` | In groups, answer only messages that @mention or reply to the bot (threads the bot is in don't need it). |
 | `FOG_FREE_RESPONSE_CHATS` | | Group ids (or `*`) where the bot answers without a mention. |
@@ -74,7 +75,17 @@ search for the bot's `@username` in Fog, and say hi.
 | `FOG_NOTIFICATIONS` | `important` | `important`: only replies, approvals and the start of a streamed reply notify; tool progress and status notes arrive silently. `all`: everything notifies. |
 | `FOG_HOME_CHANNEL` / `_NAME` | | Cron / notification target: account id, `@username` or `g:group`; add `/<thread id>` for a thread. |
 
-Every option except the token and URL can also live in `config.yaml`:
+**fog-bot on another machine.** fog-bot only listens on `127.0.0.1` unless told otherwise, and the API token
+gives full control of the bot's account, so don't send it across a network in the clear. Either forward the
+port over SSH (`ssh -N -L 8790:127.0.0.1:8790 bot-host`, then keep the default URL), or run fog-bot with
+TLS (`fog-bot run --host 0.0.0.0 --tls-cert cert.pem --tls-key key.pem`) and set
+`FOG_BOT_URL=https://bot-host:8790`, plus `FOG_BOT_CA=cert.pem` if the certificate is self-signed.
+
+**Groups and fog-bot's allowlist.** fog-bot only takes part in a group when its owner and every member are
+on fog-bot's allowlist. If someone else is added, it goes quiet there (sends fail with `403 not_allowed`,
+which the plugin logs and doesn't retry) until they leave or are added to the list.
+
+Every option except the token, URL and CA can also live in `config.yaml`:
 
 ```yaml
 gateway:

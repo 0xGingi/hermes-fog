@@ -28,11 +28,14 @@ def _kind(path: str, is_voice: bool, force_document: bool) -> str:
 
 async def standalone_send(pconfig, chat_id: str, message: str, *, thread_id: Optional[str] = None,
                           media_files: Optional[list] = None, force_document: bool = False, notify: bool = True) -> dict:
-    from .adapter import MAX_MESSAGE_LENGTH, fog_token, fog_url
+    from .adapter import MAX_MESSAGE_LENGTH, fog_ca, fog_token, fog_url
     token = fog_token(pconfig)
     if not token:
         return {"error": "FOG_BOT_TOKEN is not set"}
-    client = FogClient(fog_url(pconfig), token)
+    try:
+        client = FogClient(fog_url(pconfig), token, ca=fog_ca(pconfig))
+    except ValueError as exc:
+        return {"error": str(exc)}
     base: dict = {}
     chat_id, target_thread = split_chat(chat_id)
     thread_id = thread_id or target_thread

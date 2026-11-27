@@ -228,3 +228,13 @@ async def test_connect_rejects_bad_token(daemon):
     a = FogAdapter(PlatformConfig(enabled=True, extra={"token": "wrong", "url": daemon.url}))
     assert not await a.connect()
     assert a._fatal_error_code == "auth"
+
+
+def test_token_only_goes_over_https_or_loopback():
+    import pytest
+    from hermes_fog.client import check_url
+    for ok in ("http://127.0.0.1:8790", "http://localhost:8790", "http://[::1]:8790", "http://127.5.0.1", "https://bot.example:8790"):
+        check_url(ok)
+    for bad in ("http://bot.example:8790", "http://192.168.1.5:8790", "http://0.0.0.0:8790", "ftp://127.0.0.1", "127.0.0.1:8790"):
+        with pytest.raises(ValueError):
+            check_url(bad)

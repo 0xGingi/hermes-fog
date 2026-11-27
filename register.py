@@ -21,6 +21,7 @@ _TRUTHY = {"1", "true", "yes", "on"}
 _ENV_SEED = (
     ("FOG_BOT_TOKEN", "token", None),
     ("FOG_BOT_URL", "url", None),
+    ("FOG_BOT_CA", "ca", None),
     ("FOG_REQUIRE_MENTION", "require_mention", lambda v: v.lower() in _TRUTHY),
     ("FOG_AUTO_THREAD", "auto_thread", lambda v: v.lower() in _TRUTHY),
     ("FOG_REACTIONS", "reactions", lambda v: v.lower() in _TRUTHY),
@@ -38,6 +39,7 @@ _YAML_BRIDGE = (
     ("free_response_chats", "FOG_FREE_RESPONSE_CHATS", "csv"),
     ("notifications", "FOG_NOTIFICATIONS", "str"),
     ("url", "FOG_BOT_URL", "str"),
+    ("ca", "FOG_BOT_CA", "str"),
 )
 
 _ACCOUNT_ID = re.compile(r"^[A-Za-z0-9_-]{43}$")
